@@ -1,0 +1,18 @@
+contest_groups:
+    contest_group_1:
+        name: Contest Group 1
+        contests:
+            - contest_id: 1
+              contest_name: Contest 1
+              contest_scoring_type: acm
+
+            - contest_id: 2
+              contest_name: Contest 2
+              contest_scoring_type: acm
+
+    contest_group_2:
+        name: Contest Group 2
+        contests:
+            - contest_id: 12
+              contest_name: Contest 3
+              contest_scoring_type: olympiad
