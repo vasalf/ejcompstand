@@ -12,3 +12,24 @@ table
 {
     background-color: #aaffaa;
 }
+
+.fail
+{
+    background-color: #ffaaaa;
+}
+
+.disabled
+{
+    background-image: url(/ejudge/hatching.png);
+    background-repeat: repeat;
+}
+
+.sum
+{
+    font-weight: bold;
+}
+
+td.sum
+{
+    border: 2px solid black;
+}

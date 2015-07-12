@@ -1,18 +1,23 @@
 contest_groups:
     contest_group_1:
         name: Contest Group 1
+        prob_numeration: latin
         contests:
             - contest_id: 1
               contest_name: Contest 1
               contest_scoring_type: acm
+              prob_num: 2
 
             - contest_id: 2
               contest_name: Contest 2
               contest_scoring_type: acm
+              prob_num: 5
 
     contest_group_2:
         name: Contest Group 2
+        prob_numeration: arabic
         contests:
             - contest_id: 12
               contest_name: Contest 3
               contest_scoring_type: olympiad
+              prob_num: 4
