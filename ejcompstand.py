@@ -72,7 +72,10 @@ class Contest:
                     attr = " class=\"ok\""
                 elif tried[i]:
                     attr = " class=\"fail\""
-                s += "<td" + attr + ">" + str(res[i]) + "</td>"
+                if not(ok[i] or tried[i]):
+                    s += "<td>.</td>"
+                else:
+                    s += "<td" + attr + ">" + str(res[i]) + "</td>"
             if prob_num < cell_num:
                 s += "<td colspan=" + str(cell_num - prob_num) + " class=\"disabled\"></td>"
             s += "<td class=\"sum\">" + str(sum(res)) + "</td>"
@@ -142,14 +145,20 @@ def parse_GET_data():
 
 cgitb.enable()
 
-yaml_groups = yaml.load(open("./ejcompstand.yml", "r"))['contest_groups']
+GET = parse_GET_data()
+user_id = int(GET["user_id"])
+
+if "conf" in GET:
+    config_file = "../ejcompstand/" + GET["conf"]
+else:
+    config_file = "../ejcompstand/ejcompstand.yml"
+
+
+yaml_groups = yaml.load(open(config_file, "r", encoding="utf-8"))['contest_groups']
 contest_groups = list(map(lambda k: ContestGroup(yaml_groups[k]), yaml_groups.keys()))
 contest_groups.sort(key=lambda x: x.name)
 
 mysql_con = pymysql.connect(host='127.0.0.1', unix_socket='/var/run/mysqld/mysqld.sock', user='ejudge', password='ejudge', db='ejudge')
-
-GET = parse_GET_data()
-user_id = int(GET["user_id"])
 
 enc_print("Content-type: text/html; charset=UTF-8\n")
 enc_print("<html>")
