@@ -15,9 +15,11 @@ contest_groups:
 
     contest_group_2:
         name: Contest Group 2
+        sort_by: yearday
         prob_numeration: arabic
         contests:
             - contest_id: 12
               contest_name: Contest 3
               contest_scoring_type: olympiad
+              yearday: 20111
               prob_num: 4

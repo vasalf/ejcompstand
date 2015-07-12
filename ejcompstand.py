@@ -9,6 +9,8 @@ import pymysql
 
 class Contest:
     def __init__(self, d):
+        for s in d.keys():
+            setattr(self, s, d[s])
         self.name = d["contest_name"]
         self.prob_num = d["prob_num"]
         self.contest_id = d["contest_id"]
@@ -86,12 +88,14 @@ class ContestGroup:
         self.contests = []
         self.prob_num = 0
         self.scoring_type = "None"
+        self.sort_by = d["sort_by"] if "sort_by" in d else "name"
         for cntst in d["contests"]:
             self.contests.append(Contest(cntst))
         for cntst in self.contests:
             self.prob_num = max(self.prob_num, cntst.prob_num)
             assert self.scoring_type == "None" or self.scoring_type == cntst.scoring_type
             self.scoring_type = cntst.scoring_type
+        self.contests.sort(key=lambda x: getattr(x, self.sort_by))
 
     def GetTable(self, uid, mysql_con):
         rows = []
@@ -140,6 +144,7 @@ cgitb.enable()
 
 yaml_groups = yaml.load(open("./ejcompstand.yml", "r"))['contest_groups']
 contest_groups = list(map(lambda k: ContestGroup(yaml_groups[k]), yaml_groups.keys()))
+contest_groups.sort(key=lambda x: x.name)
 
 mysql_con = pymysql.connect(host='127.0.0.1', unix_socket='/var/run/mysqld/mysqld.sock', user='ejudge', password='ejudge', db='ejudge')
 
