@@ -149,9 +149,9 @@ GET = parse_GET_data()
 user_id = int(GET["user_id"])
 
 if "conf" in GET:
-    config_file = "../ejcompstand/" + GET["conf"]
+    config_file = "../ejcompstand/conf/" + GET["conf"]
 else:
-    config_file = "../ejcompstand/ejcompstand.yml"
+    config_file = "../ejcompstand/conf/ejcompstand.yml"
 
 
 yaml_groups = yaml.load(open(config_file, "r", encoding="utf-8"))['contest_groups']
