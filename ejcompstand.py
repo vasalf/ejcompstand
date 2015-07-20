@@ -12,7 +12,7 @@ class Contest:
         for s in d.keys():
             setattr(self, s, d[s])
         self.name = d["contest_name"]
-        self.prob_num = d["prob_numeration"]
+        self.prob_num = d["prob_num"]
         self.contest_id = d["contest_id"]
         self.scoring_type = d["contest_scoring_type"]
         
