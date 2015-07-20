@@ -12,7 +12,7 @@ class Contest:
         for s in d.keys():
             setattr(self, s, d[s])
         self.name = d["contest_name"]
-        self.prob_num = d["prob_num"]
+        self.prob_num = d["prob_numeration"]
         self.contest_id = d["contest_id"]
         self.scoring_type = d["contest_scoring_type"]
         
@@ -164,7 +164,7 @@ enc_print("Content-type: text/html; charset=UTF-8\n")
 enc_print("<html>")
 enc_print("<head>")
 enc_print("<title> Соревнования в ejudge </title>")
-enc_print("<link rel=\"stylesheet\" href=\"/ejudge/ejcompstand.css\" type=\"text/css\" />")
+enc_print("<link rel=\"stylesheet\" href=\"/ejcompstand/ejcompstand.css\" type=\"text/css\" />")
 enc_print("</head>")
 enc_print("<body>")
 for group in contest_groups:
