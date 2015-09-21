@@ -22,8 +22,18 @@ table
 
 .disabled
 {
-    background-image: url(/ejudge/hatching.png);
+    background-image: url(/ejcompstand/hatching.png);
     background-repeat: repeat;
+}
+
+td.opened_down
+{
+    border-bottom: 0px;
+}
+
+td.opened_up
+{
+    border-top: 0px;
 }
 
 .sum

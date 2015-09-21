@@ -2,9 +2,27 @@
 
 import sys
 import os
+import os.path
 import cgi, cgitb
 import yaml
 import pymysql
+import datetime
+
+
+def GetTmpFile():
+    i = 0
+    while os.path.isfile("/tmp/ejcomstand_tmp%03d.lock" % i):
+        i += 1
+    return i
+
+
+def GetContestStarttime(mysql_con, contest_id):
+    cursor = mysql_con.cursor()
+    row = cursor.execute("select start_time from runheaders where contest_id=" + str(contest_id) + ";")
+    cursor.close()
+    for t in cursor:
+        ans = t[0]
+    return ans
 
 
 class Contest:
@@ -19,6 +37,7 @@ class Contest:
     def GetRow(self, uid, mysql_con, cell_num):
         cursor = mysql_con.cursor()
         runs = cursor.execute("select prob_id, score, status from runs where user_id=" + str(user_id) + " and contest_id=" + str(self.contest_id) + ";")
+        cursor.close()
         if self.scoring_type == "acm":
             s = "<tr><td>"
             s += self.name + "</td>"
@@ -80,9 +99,75 @@ class Contest:
                 s += "<td colspan=" + str(cell_num - prob_num) + " class=\"disabled\"></td>"
             s += "<td class=\"sum\">" + str(sum(res)) + "</td>"
             s += "</tr>"
+        elif self.scoring_type == "timed_acm":
+            starttime = GetContestStarttime(mysql_con, self.contest_id)
+            cursor = mysql_con.cursor()
+            runs = cursor.execute("select prob_id, status, create_time from runs where user_id=" + str(user_id) + " and contest_id=" + str(self.contest_id) + ";")
+            s = "<tr><td rowspan=2>" + self.name + "</td>"
+            prob_num = self.prob_num
+            runs = []
+            for prob_id, status, create_time in cursor:
+                runs.append((prob_id, status, (create_time - starttime) // datetime.timedelta(minutes=1)))
+            script = "../ejcompstand/conf/scripts/std_timedacm.py"
+            tmpfilen = GetTmpFile()
+            flock = open("/tmp/ejcompstand_tmp%03d.lock" % tmpfilen, "w")
+            flock.write("locked\n")
+            flock.close()
+            fin = open("/tmp/ejcompstand_tmp%03d.in" % tmpfilen, "w")
+            fin.write(str(self.duration) + "\n")
+            fin.write(str(prob_num) + "\n")
+            fin.write(str(len(runs)) + "\n")
+            for a in runs:
+                fin.write(" ".join(map(str, a)) + "\n")
+            fin.close()
+            os.system(script + " < /tmp/ejcompstand_tmp%03d.in > /tmp/ejcompstand_tmp%03d.out" % (tmpfilen, tmpfilen))
+            probs = [() for i in range(prob_num)]
+            fout = open("/tmp/ejcompstand_tmp%03d.out" % tmpfilen, "r")
+            for i in range(prob_num):
+                t = fout.readline().split()
+                status = int(t[0])
+                tries = int(t[1])
+                last_time = int(t[2])
+                probs[i] = (status, tries, last_time)
+            teamtime = int(fout.readline())
+            fout.close()
+            solved = 0
+            for i in range(prob_num):
+                if probs[i][0] == 0:
+                    solved += 1
+                    s += "<td class=\"ok opened_down\">"
+                elif probs[i][1] > 0:
+                    s += "<td class=\"fail opened_down\">"
+                else:
+                    s += "<td rowspan=2>"
+                if probs[i][0] == 0:
+                    s += "+"
+                elif probs[i][1] > 0:
+                    s += "-"
+                if probs[i][1] > 0:
+                    s += str(probs[i][1])
+                elif probs[i][0] != 0:
+                    s += "."
+                s += "</td>"
+            if prob_num < cell_num:
+                s += "<td colspan=" + str(cell_num - prob_num) + " rowspan=2 class=\"disabled\"></td>"
+            s += "<td rowspan=2 class=\"sum\">" + str(solved) + "</td>"
+            s += "<td rowspan=2>" + str(teamtime) + "</td>"
+            s += "</tr>"
+            s += "<tr>"
+            for i in range(prob_num):
+                if probs[i][2] > -1:
+                    if probs[i][0] == 0:
+                        s += "<td class=\"ok opened_up\">(" + str(probs[i][2] // 60) + ":" + str(probs[i][2] % 60) + ")</td>"
+                    else:
+                        s += "<td class=\"fail opened_up\">(" + str(probs[i][2] // 60) + ":" + str(probs[i][2] % 60) + ")</td>"
+            s += "</tr>"
+            os.system("rm /tmp/ejcompstand_tmp%03d.lock" % tmpfilen)
+            os.system("rm /tmp/ejcompstand_tmp%03d.in" % tmpfilen)
+            os.system("rm /tmp/ejcompstand_tmp%03d.out" % tmpfilen)
         cursor.close()
         return s
-        
+       
          
 class ContestGroup:
     def __init__(self, d):
@@ -113,11 +198,14 @@ class ContestGroup:
             if self.numeration == "latin":
                 first = ord("A")
             else:
-                first = ord("1")
+                first = 1
             for i in range(self.prob_num):
-                ans += "<td>" + chr(first + i) + "</td>"
+                if self.numeration == "latin":
+                    ans += "<td>" + chr(first + i) + "</td>"
+                else:
+                    ans += "<td>" + str(first + i) + "</td>"
             ans += "<td class=\"sum\">" + chr(0x03a3) + "</td>"
-            if self.scoring_type == "acm":
+            if self.scoring_type == "acm" or self.scoring_type == "timed_acm":
                 ans += "<td>S</td>"
             ans += "</tr>"
             ans += "".join(rows)

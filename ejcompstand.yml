@@ -5,21 +5,23 @@ contest_groups:
         contests:
             - contest_id: 1
               contest_name: Contest 1
-              contest_scoring_type: acm
+              contest_scoring_type: timed_acm
+              duration: 300
               prob_num: 2
 
             - contest_id: 2
               contest_name: Contest 2
-              contest_scoring_type: acm
-              prob_num: 5
+              contest_scoring_type: timed_acm
+              duration: 300
+              prob_num: 11
 
     contest_group_2:
         name: Contest Group 2
         sort_by: yearday
         prob_numeration: arabic
         contests:
-            - contest_id: 12
+            - contest_id: 2
               contest_name: Contest 3
-              contest_scoring_type: olympiad
+              contest_scoring_type: acm
               yearday: 20111
-              prob_num: 4
+              prob_num: 11
