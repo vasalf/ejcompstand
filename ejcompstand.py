@@ -33,6 +33,10 @@ class Contest:
         self.prob_num = d["prob_num"]
         self.contest_id = d["contest_id"]
         self.scoring_type = d["contest_scoring_type"]
+        if "scoring_script" not in d:
+            self.scoring_script = "../ejcompstand/conf/scripts/std_timedacm.py"
+        else:
+            self.scoring_script = "../ejcompstand/conf/scripts/" + self.scoring_script
         
     def GetRow(self, uid, mysql_con, cell_num):
         cursor = mysql_con.cursor()
@@ -108,7 +112,7 @@ class Contest:
             runs = []
             for prob_id, status, create_time in cursor:
                 runs.append((prob_id, status, (create_time - starttime) // datetime.timedelta(minutes=1)))
-            script = "../ejcompstand/conf/scripts/std_timedacm.py"
+            script = self.scoring_script
             tmpfilen = GetTmpFile()
             flock = open("/tmp/ejcompstand_tmp%03d.lock" % tmpfilen, "w")
             flock.write("locked\n")
@@ -158,9 +162,9 @@ class Contest:
             for i in range(prob_num):
                 if probs[i][2] > -1:
                     if probs[i][0] == 0:
-                        s += "<td class=\"ok opened_up\">(" + str(probs[i][2] // 60) + ":" + str(probs[i][2] % 60) + ")</td>"
+                        s += "<td class=\"ok opened_up\">(" + str(probs[i][2] // 60) + ":" + ("%02d" % (probs[i][2] % 60)) + ")</td>"
                     else:
-                        s += "<td class=\"fail opened_up\">(" + str(probs[i][2] // 60) + ":" + str(probs[i][2] % 60) + ")</td>"
+                        s += "<td class=\"fail opened_up\">(" + str(probs[i][2] // 60) + ":" + ("%02d" % (probs[i][2] % 60)) + ")</td>"
             s += "</tr>"
             os.system("rm /tmp/ejcompstand_tmp%03d.lock" % tmpfilen)
             os.system("rm /tmp/ejcompstand_tmp%03d.in" % tmpfilen)

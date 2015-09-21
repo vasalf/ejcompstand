@@ -1,0 +1,32 @@
+contest_groups:
+    rcoi:
+        name: Всероссийская Командная Олимпиада Школьников по Программированию
+        prob_numeration: latin
+        sort_by: year
+        contests:
+            - contest_id: 2
+              contest_name: XIII ВКОШП (2012-2013) 
+              year: 2012
+              contest_scoring_type: timed_acm
+              duration: 300
+              prob_num: 11
+
+            - contest_id: 5
+              contest_name: XI ВКОШП (2010-2011)
+              year: 2010
+              contest_scoring_type: timed_acm
+              scoring_script: ./rcoi_2010.py
+              duration: 300
+              prob_num: 11
+
+    neerc:
+        name: North-Eastern European Regional Contest
+        sort_by: year
+        prob_numeration: latin
+        contests:
+            - contest_id: 3
+              contest_name: NEERC 2014
+              contest_scoring_type: timed_acm
+              duration: 300
+              year: 2014
+              prob_num: 11
