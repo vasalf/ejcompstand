@@ -37,6 +37,18 @@ class Contest:
             self.scoring_script = "../ejcompstand/conf/scripts/std_timedacm.py"
         else:
             self.scoring_script = "../ejcompstand/conf/scripts/" + self.scoring_script
+        if "results_for_users" not in d:
+            self.results_for_user = dict()
+        else:
+            self.results_for_user = dict()
+            self.teamtime_for_user = dict()
+            for ress in self.results_for_users:
+                self.results_for_user[ress["user_id"]] = ress["problems"]
+                self.teamtime_for_user[ress["user_id"]] = ress["teamtime"]
+                for i in range(self.prob_num):
+                    if isinstance(self.results_for_user[ress["user_id"]][i]["time"], str):
+                        h, m = map(int, self.results_for_user[ress["user_id"]][i]["time"].split(":"))
+                        self.results_for_user[ress["user_id"]][i]["time"] = 60 * h + m
         
     def GetRow(self, uid, mysql_con, cell_num):
         cursor = mysql_con.cursor()
@@ -104,37 +116,47 @@ class Contest:
             s += "<td class=\"sum\">" + str(sum(res)) + "</td>"
             s += "</tr>"
         elif self.scoring_type == "timed_acm":
-            starttime = GetContestStarttime(mysql_con, self.contest_id)
-            cursor = mysql_con.cursor()
-            runs = cursor.execute("select prob_id, status, create_time from runs where user_id=" + str(user_id) + " and contest_id=" + str(self.contest_id) + ";")
             s = "<tr><td rowspan=2>" + self.name + "</td>"
-            prob_num = self.prob_num
-            runs = []
-            for prob_id, status, create_time in cursor:
-                runs.append((prob_id, status, (create_time - starttime) // datetime.timedelta(minutes=1)))
-            script = self.scoring_script
-            tmpfilen = GetTmpFile()
-            flock = open("/tmp/ejcompstand_tmp%03d.lock" % tmpfilen, "w")
-            flock.write("locked\n")
-            flock.close()
-            fin = open("/tmp/ejcompstand_tmp%03d.in" % tmpfilen, "w")
-            fin.write(str(self.duration) + "\n")
-            fin.write(str(prob_num) + "\n")
-            fin.write(str(len(runs)) + "\n")
-            for a in runs:
-                fin.write(" ".join(map(str, a)) + "\n")
-            fin.close()
-            os.system(script + " < /tmp/ejcompstand_tmp%03d.in > /tmp/ejcompstand_tmp%03d.out" % (tmpfilen, tmpfilen))
-            probs = [() for i in range(prob_num)]
-            fout = open("/tmp/ejcompstand_tmp%03d.out" % tmpfilen, "r")
-            for i in range(prob_num):
-                t = fout.readline().split()
-                status = int(t[0])
-                tries = int(t[1])
-                last_time = int(t[2])
-                probs[i] = (status, tries, last_time)
-            teamtime = int(fout.readline())
-            fout.close()
+            if user_id not in self.results_for_user:
+                starttime = GetContestStarttime(mysql_con, self.contest_id)
+                cursor = mysql_con.cursor()
+                runs = cursor.execute("select prob_id, status, create_time from runs where user_id=" + str(user_id) + " and contest_id=" + str(self.contest_id) + ";")
+                prob_num = self.prob_num
+                runs = []
+                for prob_id, status, create_time in cursor:
+                    runs.append((prob_id, status, (create_time - starttime) // datetime.timedelta(minutes=1)))
+                script = self.scoring_script
+                tmpfilen = GetTmpFile()
+                flock = open("/tmp/ejcompstand_tmp%03d.lock" % tmpfilen, "w")
+                flock.write("locked\n")
+                flock.close()
+                fin = open("/tmp/ejcompstand_tmp%03d.in" % tmpfilen, "w")
+                fin.write(str(self.duration) + "\n")
+                fin.write(str(prob_num) + "\n")
+                fin.write(str(len(runs)) + "\n")
+                for a in runs:
+                    fin.write(" ".join(map(str, a)) + "\n")
+                fin.close()
+                os.system(script + " < /tmp/ejcompstand_tmp%03d.in > /tmp/ejcompstand_tmp%03d.out" % (tmpfilen, tmpfilen))
+                probs = [() for i in range(prob_num)]
+                fout = open("/tmp/ejcompstand_tmp%03d.out" % tmpfilen, "r")
+                for i in range(prob_num):
+                    t = fout.readline().split()
+                    status = int(t[0])
+                    tries = int(t[1])
+                    last_time = int(t[2])
+                    probs[i] = (status, tries, last_time)
+                teamtime = int(fout.readline())
+                fout.close()
+                os.system("rm /tmp/ejcompstand_tmp%03d.lock" % tmpfilen)
+                os.system("rm /tmp/ejcompstand_tmp%03d.in" % tmpfilen)
+                os.system("rm /tmp/ejcompstand_tmp%03d.out" % tmpfilen)
+            else:
+                prob_num = self.prob_num
+                probs = [(self.results_for_user[user_id][i]["status"], \
+                          self.results_for_user[user_id][i]["tries"], \
+                          self.results_for_user[user_id][i]["time"]) for i in range(prob_num)]
+                teamtime = self.teamtime_for_user[user_id]
             solved = 0
             for i in range(prob_num):
                 if probs[i][0] == 0:
@@ -166,9 +188,6 @@ class Contest:
                     else:
                         s += "<td class=\"fail opened_up\">(" + str(probs[i][2] // 60) + ":" + ("%02d" % (probs[i][2] % 60)) + ")</td>"
             s += "</tr>"
-            os.system("rm /tmp/ejcompstand_tmp%03d.lock" % tmpfilen)
-            os.system("rm /tmp/ejcompstand_tmp%03d.in" % tmpfilen)
-            os.system("rm /tmp/ejcompstand_tmp%03d.out" % tmpfilen)
         cursor.close()
         return s
        

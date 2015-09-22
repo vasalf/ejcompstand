@@ -13,7 +13,26 @@ contest_groups:
               contest_name: Contest 2
               contest_scoring_type: timed_acm
               duration: 300
-              prob_num: 11
+              prob_num: 4
+              results_for_users:
+                - user_id: 1
+                  teamtime: 1000
+                  problems:
+                    - status: 0
+                      tries: 0
+                      time: 0:01
+
+                    - status: 0
+                      tries: 1
+                      time: 3:01
+
+                    - status: 1
+                      tries: 179
+                      time: 0:05
+
+                    - status: 0
+                      tries: 20
+                      time: 2:00
 
     contest_group_2:
         name: Contest Group 2
